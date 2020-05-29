@@ -10,6 +10,8 @@ from ..jwt import generate_token
 class User(BaseModel):
     username: str
     password: str
+    public: bool
+
 
 user_router = APIRouter()
 
@@ -24,7 +26,7 @@ async def login(body_item: User, response: Response):
         if check_password_hash(user['password_hash'], body_item.password):
             token = generate_token()
             response.headers["x-xsrf-token"] = token
-            return {"uname": body_item.username, "user_id": user['user_id']}
+            return {"status":"ok","uname": body_item.username, "user_id": user['user_id']}
     return { "status":"error", "msg":"username or password error." }
 
 
