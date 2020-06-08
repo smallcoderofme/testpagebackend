@@ -10,17 +10,16 @@ from ..jwt import generate_token
 class User(BaseModel):
     username: str
     password: str
-    public: bool
 
 
 user_router = APIRouter()
 
-@user_router.post("/login/", tags=["authorization"])
+@user_router.post("/login/")
 async def login(body_item: User, response: Response):
     print('----username:', body_item.username)
     query = "SELECT username, password_hash, user_id FROM users;"
     results = await database.fetch_all(query=query)
-    # print('------', dict(results[0]))
+    print('------', dict(results[0]))
     for u in results:
         user = dict(u)
         if check_password_hash(user['password_hash'], body_item.password):

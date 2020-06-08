@@ -13,7 +13,7 @@ class Post(BaseModel):
     user_id: str
 
     def verify(self):
-        if !self.name or !self.preview or !self.content or !self.author or !self.user_id:
+        if not self.name or not self.preview or not self.content or not self.author or not self.user_id:
             return False
         else:
             return True
@@ -53,13 +53,39 @@ async def get_admin_post():
     return []
 
 @post_router.post('/posts/create')
-async def create_post(new_post: Postr, esponse: Response):
+async def create_post(new_post: Post, response: Response):
+    token = response.headers["Authorization"]
     if token and verify_token(token):
         if new_post.verify():
-            query = "INSERT INTO posts (name, post_id, preview, content, public, author, user_id) VALUES ({} {} {} {} {} {} {})"
-            .format(new_post.name, uuid.uuid4(), new_post.preview, new_post.content, new_post.public, new_post.author, new_post.user_id)
+            query = "INSERT INTO posts (name, post_id, preview, content, public, author, user_id) VALUES ({} {} {} {} {} {} {})".format(new_post.name, uuid.uuid4(), new_post.preview, new_post.content, new_post.public, new_post.author, new_post.user_id)
             results = await database.execute(query)
+            print(results)
             return { "status":"ok", "msg":"Created success." }
+        else:
+            return { "status":"403", "msg":"Param are not enough." } 
+    else:
+        return { "status":"405", "msg":"Not Authotization." }
+
+@post_router.post('/posts/delete')
+async def delete_post(post_id: str, response: Response):
+    token = response.headers["Authorization"]
+    if token and verify_token(token) and post_id and len(post_id) == 32:
+        query = "DELETE FROM posts WHERE post_id={}".format(post_id)
+        results = await database.execute(query)
+        print(results)
+        return { "status":"ok", "msg":"Delete success." }
+    else:
+        return { "status":"error", "msg":"Required params." }
+
+@post_router.post('/posts/update')
+async def update_post(update_post: Post, response: Response):
+    token = response.headers["Authorization"]
+    if token and verify_token(token):
+        if update_post.verify():
+            query = "UPDATE posts (name, post_id, preview, content, public, author, user_id) VALUES ({} {} {} {} {} {} {})".format(update_post.name, uuid.uuid4(), update_post.preview, update_post.content, update_post.public, update_post.author, update_post.user_id)
+            results = await database.execute(query)
+            print(results)
+            return { "status":"ok", "msg":"Updated success." }
         else:
             return { "status":"403", "msg":"Param are not enough." } 
     else:
